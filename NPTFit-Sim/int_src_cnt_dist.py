@@ -97,5 +97,4 @@ def run(n,F,A,temp_map):
     term_arr = None 
     i = 0
 
->>>>>>> 72c3d937416871fda096a1860bfdd646d91ebc42
     return pois_draw
