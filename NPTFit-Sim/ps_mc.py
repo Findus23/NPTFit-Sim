@@ -43,6 +43,6 @@ def run(n,F,A,temp,exp,psf_r,name="map",save=False):
     if save:
         np.save(str(name) + ".npy",map_arr.astype(np.int32))
 
-    print "Done simulation."
+    print("Done simulation.")
 
     return map_arr.astype(np.int32)

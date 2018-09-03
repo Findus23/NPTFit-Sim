@@ -88,5 +88,5 @@ def run(n,F,A,temp_map):
     # Do a Poisson draw, where exp_num is the mean
     pois_draw = np.random.poisson(exp_num)
 
-    print "Number of sources from Poisson draw: " + str(pois_draw)
+    print("Number of sources from Poisson draw: " + str(pois_draw))
     return pois_draw
