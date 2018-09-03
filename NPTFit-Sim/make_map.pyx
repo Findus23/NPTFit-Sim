@@ -44,7 +44,7 @@ cpdef double[::1] run(int N, double[::1] flux_arr, double[::1] temp,
     cdef double[::1] map_arr = np.zeros(len(EXP_map))
     cdef double th, ph
 
-    print "Simulating counts map ..."
+    print("Simulating counts map ...")
 
     # Sample the radial PSF to later determine placement of photons.
     f = np.linspace(0,np.pi,1e6)
