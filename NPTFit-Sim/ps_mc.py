@@ -19,8 +19,8 @@ def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.])):
         reading in template, source count distribution parameters, exposure 
         map, and the user defined PSF.
 
-            :param n: numpy array of index values
-            :param F: numpy array of flux break values
+            :param n: numpy array of index values, highest to lowest
+            :param F: numpy array of flux break values, highest to lowest
             :param A: float of log10 norm for the SCD
             :param temp: HEALPix numpy array of template
             :param exp: HEALPix numpy array of exposure map
@@ -32,6 +32,7 @@ def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.])):
 
             :returns: HEALPix format numpy array of simulated map
     """
+    
     # If exposure map is a 1D array, wrap it again so it has 1 energy bin
     if len(np.shape(exp)) == 1:
         exp = np.array([exp])
@@ -39,6 +40,11 @@ def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.])):
     # Check exposure map and flux frac have same number of energy bins
     assert(len(exp) == len(flux_frac)), \
     "exposure and flux fraction must have the same number of energy bins"
+    
+    # Check if flux breaks in correct order
+    if len(F) > 1:
+        assert(F[0] > F[-1]), \
+            "Flux array is in the wrong order, highest to lowest!"
     
     # Int. SCD to find mean couts, Poisson draws for # of sources in template
     num_src = iscd.run(n,F,A,temp)
