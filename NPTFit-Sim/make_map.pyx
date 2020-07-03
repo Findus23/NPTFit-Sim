@@ -25,8 +25,8 @@ cdef extern from "math.h":
 @cython.wraparound(False)
 @cython.cdivision(True)
 @cython.initializedcheck(False)
-cpdef double[::1] run(int N, double[::1] flux_arr, double[::1] temp,
-                       double[::1] EXP_map,psf_r):
+cpdef double[:,::1] run(int N, double[::1] flux_arr, double[::1] temp,
+                      double[:,::1] EXP_map, psf_r, double[::1] flux_frac):
     """ For a given number of sources and fluxes, PSF, template, and exposure
         map, create a simulated counts map.
 
@@ -35,13 +35,16 @@ cpdef double[::1] run(int N, double[::1] flux_arr, double[::1] temp,
             :param temp: numpy array for template
             :param EXP_map: numpy array of exposure map
             :param psf_r: user defined point spread function
+            :param flux_frac: array of flux fractions to distribute between
+                different energy bins, default is 1 bin
 
             :returns: array of simulated counts map
     """
     cdef int NSIDE = hp.npix2nside(len(temp))
-    cdef int num_phot, i, j, posit
+    cdef int num_phot, i, j, posit, iebin
+    cdef int ebins = len(flux_frac)
     cdef np.ndarray[double,ndim=1,mode="c"] dist
-    cdef double[::1] map_arr = np.zeros(len(EXP_map))
+    cdef double[:,::1] map_arr = np.zeros((ebins,len(temp)))
     cdef double th, ph
 
     print("Simulating counts map ...")
@@ -56,16 +59,9 @@ cpdef double[::1] run(int N, double[::1] flux_arr, double[::1] temp,
     # photons to a running counts map array, map_arr.
     i = 0
     while i < N:
+        print("Source "+str(i+1)+"/"+str(N))
         # Find random source position using rejection sampling.
         th, ph = np.asarray(rs.run(temp))
-
-        # Find expected number of source photons and then do a Poisson draw.
-        num_phot = np.random.poisson(flux_arr[i] * 
-                                    EXP_map[hp.ang2pix(NSIDE,th,ph)])
-
-
-        # Sample distances from PSF for each source photon.
-        dist = pdf(num_phot)
 
         # Create a rotation matrix for each source.
         # Shift phi coord pi/2 to correspond to center of HEALPix map durring
@@ -80,22 +76,34 @@ cpdef double[::1] run(int N, double[::1] flux_arr, double[::1] temp,
         rotx = np.matrix([[1,0,0],[0,cos(th),-sin(th)],[0,sin(th),cos(th)]])
         rotz = np.matrix([[cos(phm),-sin(phm),0],[sin(phm),cos(phm),0],[0,0,1]])
 
-        j = 0
-        while j < num_phot:
-            # Draw a random phi postion [0,2pi].
-            randPhi = 2*np.pi*np.random.random()
-            # Convert the theta and phi to x,y,z coords.
-            X = np.matrix(hp.ang2vec(dist[j],randPhi)).T
-            # Rotate coords over the x axis.
-            Xp = rotx*X
-            # Rotate again, over the z axis.
-            Xp = rotz*Xp
-            Xp = np.array(Xp)
-            # Determine pixel location from x,y,z values.
-            posit = hp.vec2pix(NSIDE,Xp[0],Xp[1],Xp[2])
-            # Add a count to that pixel on the map.
-            map_arr[posit] += 1
-            j += 1
+        # Loop through energy bins
+        iebin = 0
+        while iebin < ebins:
+            # Find expected number of source photons and then do a Poisson draw.
+            # Weight the total flux by the expected flux in that bin
+            num_phot = np.random.poisson(flux_arr[i] * flux_frac[iebin] *
+                                    EXP_map[iebin,hp.ang2pix(NSIDE,th,ph)])
+
+            # Sample distances from PSF for each source photon.
+            dist = pdf(num_phot)
+
+            j = 0
+            while j < num_phot:
+                # Draw a random phi postion [0,2pi].
+                randPhi = 2*np.pi*np.random.random()
+                # Convert the theta and phi to x,y,z coords.
+                X = np.matrix(hp.ang2vec(dist[j],randPhi)).T
+                # Rotate coords over the x axis.
+                Xp = rotx*X
+                # Rotate again, over the z axis.
+                Xp = rotz*Xp
+                Xp = np.array(Xp)
+                # Determine pixel location from x,y,z values.
+                posit = hp.vec2pix(NSIDE,Xp[0],Xp[1],Xp[2])
+                # Add a count to that pixel on the map.
+                map_arr[iebin,posit] += 1
+                j += 1
+            iebin += 1
         i += 1
 
     return map_arr
