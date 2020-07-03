@@ -59,7 +59,6 @@ cpdef double[:,::1] run(int N, double[::1] flux_arr, double[::1] temp,
     # photons to a running counts map array, map_arr.
     i = 0
     while i < N:
-        print("Source "+str(i+1)+"/"+str(N))
         # Find random source position using rejection sampling.
         th, ph = np.asarray(rs.run(temp))
 
