@@ -26,7 +26,8 @@ cdef extern from "math.h":
 @cython.cdivision(True)
 @cython.initializedcheck(False)
 cpdef double[:,::1] run(int N, double[::1] flux_arr, double[::1] temp,
-                      double[:,::1] EXP_map, psf_r, double[::1] flux_frac):
+                      double[:,::1] EXP_map, psf_r, double[::1] flux_frac,
+                      double r_ROI=np.nan):
     """ For a given number of sources and fluxes, PSF, template, and exposure
         map, create a simulated counts map.
 
@@ -37,6 +38,8 @@ cpdef double[:,::1] run(int N, double[::1] flux_arr, double[::1] temp,
             :param psf_r: user defined point spread function
             :param flux_frac: array of flux fractions to distribute between
                 different energy bins, default is 1 bin
+            :params r_ROI: maximum distance to draw sources from the galactic
+                center
 
             :returns: array of simulated counts map
     """
@@ -60,7 +63,7 @@ cpdef double[:,::1] run(int N, double[::1] flux_arr, double[::1] temp,
     i = 0
     while i < N:
         # Find random source position using rejection sampling.
-        th, ph = np.asarray(rs.run(temp))
+        th, ph = np.asarray(rs.run(temp, r_ROI=r_ROI))
 
         # Create a rotation matrix for each source.
         # Shift phi coord pi/2 to correspond to center of HEALPix map durring

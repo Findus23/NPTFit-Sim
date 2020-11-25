@@ -14,7 +14,8 @@ import make_map as mm
 
 import numpy as np
 
-def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.])):
+def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.]),
+        r_ROI=np.nan):
     """ Brings together serveral programs to run point source Monte Carlo by
         reading in template, source count distribution parameters, exposure 
         map, and the user defined PSF.
@@ -29,6 +30,8 @@ def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.])):
             :param save: option to save map to .npy file
             :param flux_frac: array of flux fractions to distribute between
                 different energy bins, default is 1 bin
+            :params r_ROI: maximum distance to draw sources from the galactic
+                center
 
             :returns: HEALPix format numpy array of simulated map
     """
@@ -53,7 +56,8 @@ def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.])):
     flux_arr = cf.run(num_src,n,F)
 
     # Generate simulated counts map
-    map_arr = np.asarray(mm.run(num_src,flux_arr,temp,exp,psf_r,flux_frac))
+    map_arr = np.asarray(mm.run(num_src,flux_arr,temp,exp,psf_r,flux_frac,
+                                r_ROI))
 
     # Save the file as an .npy file
     if save:
