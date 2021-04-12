@@ -75,7 +75,7 @@ def run(N,n,F,lobo=-1,upbo=-1):
     
     #Use numpy to sample the distribution, also accounts for log-space w/ Jacob.
     print("Sampling the source count distribution.")
-    f = np.logspace(np.log10(lobo),np.log10(upbo),1e5)
+    f = np.logspace(np.log10(lobo),np.log10(upbo),100000)
     
     dv = f[1:] - f[:-1]
     dv = np.append(dv,dv[-1])
