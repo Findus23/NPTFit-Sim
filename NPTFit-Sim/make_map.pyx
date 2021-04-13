@@ -53,7 +53,7 @@ cpdef double[:,::1] run(int N, double[::1] flux_arr, double[::1] temp,
     print("Simulating counts map ...")
 
     # Sample the radial PSF to later determine placement of photons.
-    f = np.linspace(0,np.pi,1e6)
+    f = np.linspace(0,np.pi,1000000)
     pdf_psf = f * psf_r(f)
     pdf = pdf_sampler.PDFSampler(f,pdf_psf)
 
