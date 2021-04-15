@@ -25,9 +25,9 @@ cdef extern from "math.h":
 @cython.wraparound(False)
 @cython.cdivision(True)
 @cython.initializedcheck(False)
-cpdef double[:,::1] run(int N, double[::1] flux_arr, double[::1] temp,
-                      double[:,::1] EXP_map, psf_r, double[::1] flux_frac,
-                      double r_ROI=np.nan):
+cpdef run(int N, double[::1] flux_arr, double[::1] temp,
+          double[:,::1] EXP_map, psf_r, double[::1] flux_frac,
+          double r_ROI=np.nan, bint returnlocs=False):
     """ For a given number of sources and fluxes, PSF, template, and exposure
         map, create a simulated counts map.
 
@@ -40,6 +40,7 @@ cpdef double[:,::1] run(int N, double[::1] flux_arr, double[::1] temp,
                 different energy bins, default is 1 bin
             :params r_ROI: maximum distance to draw sources from the galactic
                 center
+            :params returnlocs: if true return the source locations
 
             :returns: array of simulated counts map
     """
@@ -49,6 +50,7 @@ cpdef double[:,::1] run(int N, double[::1] flux_arr, double[::1] temp,
     cdef np.ndarray[double,ndim=1,mode="c"] dist
     cdef double[:,::1] map_arr = np.zeros((ebins,len(temp)))
     cdef double th, ph
+    locs = []
 
     print("Simulating counts map ...")
 
@@ -64,6 +66,9 @@ cpdef double[:,::1] run(int N, double[::1] flux_arr, double[::1] temp,
     while i < N:
         # Find random source position using rejection sampling.
         th, ph = np.asarray(rs.run(temp, r_ROI=r_ROI))
+
+        if returnlocs:
+            locs.append([th, ph])
 
         # Create a rotation matrix for each source.
         # Shift phi coord pi/2 to correspond to center of HEALPix map durring
@@ -108,4 +113,4 @@ cpdef double[:,::1] run(int N, double[::1] flux_arr, double[::1] temp,
             iebin += 1
         i += 1
 
-    return map_arr
+    return np.array(map_arr), np.array(locs)

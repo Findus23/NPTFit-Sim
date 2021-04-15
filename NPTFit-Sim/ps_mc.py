@@ -15,7 +15,7 @@ import make_map as mm
 import numpy as np
 
 def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.]),
-        r_ROI=np.nan):
+        r_ROI=np.nan,returnlocs=False):
     """ Brings together serveral programs to run point source Monte Carlo by
         reading in template, source count distribution parameters, exposure 
         map, and the user defined PSF.
@@ -32,6 +32,7 @@ def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.]),
                 different energy bins, default is 1 bin
             :params r_ROI: maximum distance to draw sources from the galactic
                 center
+            :params returnlocs: if true return the source locations
 
             :returns: HEALPix format numpy array of simulated map
     """
@@ -56,13 +57,16 @@ def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.]),
     flux_arr = cf.run(num_src,n,F)
 
     # Generate simulated counts map
-    map_arr = np.asarray(mm.run(num_src,flux_arr,temp,exp,psf_r,flux_frac,
-                                r_ROI))
+    map_arr, locs = np.asarray(mm.run(num_src,flux_arr,temp,exp,psf_r,flux_frac,
+                                      r_ROI,returnlocs))
 
     # Save the file as an .npy file
     if save:
-        np.save(str(name) + ".npy",map_arr.astype(np.int32))
+        np.save(str(name) + ".npy",np.array(map_arr, dtype=np.int32))
 
     print("Done simulation.")
 
-    return map_arr.astype(np.int32)
+    if returnlocs:
+        return np.array(map_arr, dtype=np.int32), np.array(locs, dtype=np.float)
+    else:
+        return np.array(map_arr, dtype=np.int32)
