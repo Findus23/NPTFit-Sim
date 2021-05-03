@@ -27,7 +27,7 @@ cdef extern from "math.h":
 @cython.initializedcheck(False)
 cpdef run(int N, double[::1] flux_arr, double[::1] temp,
           double[:,::1] EXP_map, psf_r, double[::1] flux_frac,
-          double r_ROI=np.nan, bint returnlocs=False):
+          double r_ROI=np.nan, bint returnpsdat=False):
     """ For a given number of sources and fluxes, PSF, template, and exposure
         map, create a simulated counts map.
 
@@ -40,7 +40,7 @@ cpdef run(int N, double[::1] flux_arr, double[::1] temp,
                 different energy bins, default is 1 bin
             :params r_ROI: maximum distance to draw sources from the galactic
                 center
-            :params returnlocs: if true return the source locations
+            :params returnpsdat: if true return data on the individual sources
 
             :returns: array of simulated counts map
     """
@@ -50,7 +50,7 @@ cpdef run(int N, double[::1] flux_arr, double[::1] temp,
     cdef np.ndarray[double,ndim=1,mode="c"] dist
     cdef double[:,::1] map_arr = np.zeros((ebins,len(temp)))
     cdef double th, ph
-    locs = []
+    psdat = []
 
     print("Simulating counts map ...")
 
@@ -66,9 +66,6 @@ cpdef run(int N, double[::1] flux_arr, double[::1] temp,
     while i < N:
         # Find random source position using rejection sampling.
         th, ph = np.asarray(rs.run(temp, r_ROI=r_ROI))
-
-        if returnlocs:
-            locs.append([th, ph])
 
         # Create a rotation matrix for each source.
         # Shift phi coord pi/2 to correspond to center of HEALPix map durring
@@ -90,6 +87,13 @@ cpdef run(int N, double[::1] flux_arr, double[::1] temp,
             # Weight the total flux by the expected flux in that bin
             num_phot = np.random.poisson(flux_arr[i] * flux_frac[iebin] *
                                     EXP_map[iebin,hp.ang2pix(NSIDE,th,ph)])
+
+            if returnpsdat:
+                psdat.append([th, ph,
+                              num_phot, 
+                              flux_arr[i]*flux_frac[iebin]*
+                              EXP_map[iebin,hp.ang2pix(NSIDE,th,ph)],
+                              flux_arr[i]*flux_frac[iebin]])
 
             # Sample distances from PSF for each source photon.
             dist = pdf(num_phot)
@@ -113,4 +117,4 @@ cpdef run(int N, double[::1] flux_arr, double[::1] temp,
             iebin += 1
         i += 1
 
-    return np.array(map_arr), np.array(locs)
+    return np.array(map_arr), np.array(psdat)

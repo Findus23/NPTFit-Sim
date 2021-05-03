@@ -15,7 +15,7 @@ import make_map as mm
 import numpy as np
 
 def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.]),
-        r_ROI=np.nan,returnlocs=False):
+        r_ROI=np.nan,returnpsdat=False):
     """ Brings together serveral programs to run point source Monte Carlo by
         reading in template, source count distribution parameters, exposure 
         map, and the user defined PSF.
@@ -32,7 +32,8 @@ def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.]),
                 different energy bins, default is 1 bin
             :params r_ROI: maximum distance to draw sources from the galactic
                 center
-            :params returnlocs: if true return the source locations
+            :params returnpsdat: if true return data on the individual sources
+                format: [theta, phi, actual counts, expected counts, expected flux]
 
             :returns: HEALPix format numpy array of simulated map
     """
@@ -43,13 +44,13 @@ def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.]),
     
     # Check exposure map and flux frac have same number of energy bins
     assert(len(exp) == len(flux_frac)), \
-    "exposure and flux fraction must have the same number of energy bins"
+        "exposure and flux fraction must have the same number of energy bins"
     
     # Check if flux breaks in correct order
     if len(F) > 1:
         assert(F[0] > F[-1]), \
             "Flux array is in the wrong order, highest to lowest!"
-    
+
     # Int. SCD to find mean couts, Poisson draws for # of sources in template
     num_src = iscd.run(n,F,A,temp)
 
@@ -57,8 +58,8 @@ def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.]),
     flux_arr = cf.run(num_src,n,F)
 
     # Generate simulated counts map
-    map_arr, locs = np.asarray(mm.run(num_src,flux_arr,temp,exp,psf_r,flux_frac,
-                                      r_ROI,returnlocs))
+    map_arr, psdat = np.asarray(mm.run(num_src,flux_arr,temp,exp,psf_r,flux_frac,
+                                       r_ROI,returnpsdat))
 
     # Save the file as an .npy file
     if save:
@@ -66,7 +67,7 @@ def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.]),
 
     print("Done simulation.")
 
-    if returnlocs:
-        return np.array(map_arr, dtype=np.int32), np.array(locs, dtype=np.float)
+    if returnpsdat:
+        return np.array(map_arr, dtype=np.int32), np.array(psdat, dtype=np.float)
     else:
         return np.array(map_arr, dtype=np.int32)
