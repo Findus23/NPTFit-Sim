@@ -17,7 +17,19 @@ AUTHORS
 INSTALLATION
 ------------
 
-Before using the code, the cython needs to be compiled. To do this enter the directory ``NPTFit-Sim`` and run the ``make.sh`` file.
+Either clone the repository:
+
+.. code-block:: bash
+
+    git clone https://github.com/Findus23/NPTFit-Sim.git
+    cd NPTFit-Sim/NPTFit-Sim
+    pip install . # (or pip install --editable .)
+
+or install in one step
+
+.. code-block:: bash
+
+   pip install git+https://github.com/Findus23/NPTFit-Sim.git#subdirectory=NPTFit-Sim
 
 EXAMPLES
 --------
