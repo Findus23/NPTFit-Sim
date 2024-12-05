@@ -18,7 +18,7 @@ import healpy as hp
 cimport numpy as np
 cimport cython
 
-DTYPE = np.float
+DTYPE = np.float64
 
 @cython.boundscheck(False)
 @cython.wraparound(False)

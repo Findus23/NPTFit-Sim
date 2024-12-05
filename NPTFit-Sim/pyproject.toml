@@ -1,0 +1,9 @@
+[project]
+name = "nptfit-sim"
+version = "0.0.1"
+
+[build-system]
+requires = ["setuptools", "wheel", "Cython", "numpy"]
+
+[tool.setuptools]
+py-modules = ['ps_mc', 'pdf_sampler', 'int_src_cnt_dist', 'create_flux','make_map','rej_samp']

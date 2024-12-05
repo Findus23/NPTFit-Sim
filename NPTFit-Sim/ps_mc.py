@@ -58,8 +58,10 @@ def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.]),
     flux_arr = cf.run(num_src,n,F)
 
     # Generate simulated counts map
-    map_arr, psdat = np.asarray(mm.run(num_src,flux_arr,temp,exp,psf_r,flux_frac,
-                                       r_ROI,returnpsdat))
+    map_arr, psdat = mm.run(num_src, flux_arr, temp, exp, psf_r, flux_frac,
+                            r_ROI, returnpsdat)
+    map_arr = np.asarray(map_arr)
+    psdat = np.asarray(psdat)
 
     # Save the file as an .npy file
     if save:
@@ -68,6 +70,6 @@ def run(n,F,A,temp,exp,psf_r,name="map",save=False,flux_frac=np.array([1.]),
     print("Done simulation.")
 
     if returnpsdat:
-        return np.array(map_arr, dtype=np.int32), np.array(psdat, dtype=np.float)
+        return np.array(map_arr, dtype=np.int32), np.array(psdat, dtype=np.float64)
     else:
         return np.array(map_arr, dtype=np.int32)
